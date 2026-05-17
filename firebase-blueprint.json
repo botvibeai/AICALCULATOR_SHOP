@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user of AICalculator.shop",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The unique Firebase Auth ID of the user" },
+        "displayName": { "type": "string", "description": "The display name of the user" },
+        "email": { "type": "string", "description": "The user's email address" },
+        "points": { "type": "number", "description": "Points earned by the user" },
+        "credits": { "type": "number", "description": "Credits for premium tool usage" },
+        "savedCalculators": { "type": "array", "description": "List of favorite tools by ID" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "points", "credits"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "A log entries for user activities",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "action": { "type": "string", "description": "The action performed (e.g., 'share', 'favorite', 'calculation')" },
+        "toolId": { "type": "string", "description": "The ID of the tool involved" },
+        "pointsEarned": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "ActivityLog",
+      "description": "User activity history"
+    }
+  }
+}

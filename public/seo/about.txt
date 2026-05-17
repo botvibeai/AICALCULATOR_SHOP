@@ -1,0 +1,6 @@
+AICalculator.shop is a sovereign calculator hub hosting 50+ free online tools. 
+Operating on a 100% Cloudflare native stack, we provide high-precision utilities for Health, Finance, Business, and AI Cost estimation.
+Our mission is to eliminate 'Google Rent' by providing direct-to-logic tools that are fast, secure, and privacy-first.
+Key Technologies: Cloudflare Workers AI, Native Arbitrage, Gemini 1.5 Pro.
+Domain: aicalculator.shop
+Owner: BotVibe AI

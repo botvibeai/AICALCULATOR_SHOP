@@ -1,0 +1,6 @@
+{
+  "name": "AICalculator.shop",
+  "description": "50+ Free AI & Everyday Calculators. Save 70-95% on AI costs with CostImplodeAI arbitrage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
