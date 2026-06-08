@@ -52,6 +52,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { auth, googleProvider, createUserProfile, getUserProfile, logActivity, toggleToolFavorite, db } from './services/firebaseService';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
+import { Language, translations } from './translations';
+import { Logo } from './components/Logo';
 
 type Notification = {
   id: string;
@@ -233,7 +235,7 @@ const PrivacyPolicy = () => (
   } />
 );
 
-const Header = ({ points, credits, favoritesCount, setView, user, onLogin, onLogout, notifications, onShowNotifications }: { 
+const Header = ({ points, credits, favoritesCount, setView, user, onLogin, onLogout, notifications, onShowNotifications, language, setLanguage, t }: { 
   points: number, 
   credits: number, 
   favoritesCount: number, 
@@ -242,7 +244,10 @@ const Header = ({ points, credits, favoritesCount, setView, user, onLogin, onLog
   onLogin: () => void,
   onLogout: () => void,
   notifications: Notification[],
-  onShowNotifications: () => void
+  onShowNotifications: () => void,
+  language: Language,
+  setLanguage: (lang: Language) => void,
+  t: any
 }) => {
   const unreadCount = notifications.filter(n => !n.isRead).length;
   
@@ -250,23 +255,18 @@ const Header = ({ points, credits, favoritesCount, setView, user, onLogin, onLog
   <header className="sticky top-0 z-50 glass border-b border-white/10 px-4 py-3">
     <div className="max-w-7xl mx-auto flex items-center justify-between">
       <div 
-        className="flex items-center gap-2 cursor-pointer group"
+        className="cursor-pointer"
         onClick={() => setView({ type: 'home' })}
       >
-        <div className="w-10 h-10 bg-neon-blue rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.5)] group-hover:scale-110 transition-transform">
-          <Calculator className="text-cyber-black w-6 h-6" />
-        </div>
-        <span className="text-xl font-bold tracking-tighter neon-text-blue hidden sm:block">
-          AICalculator<span className="text-white">.shop</span>
-        </span>
+        <Logo iconSize="md" showText={true} />
       </div>
 
       <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white/70">
-        <button onClick={() => setView({ type: 'home' })} className="hover:text-neon-blue transition-colors">Home</button>
-        <button onClick={() => setView({ type: 'all' })} className="hover:text-neon-blue transition-colors">All Tools</button>
-        <button onClick={() => setView({ type: 'privacy' })} className="hover:text-neon-blue transition-colors">Privacy</button>
+        <button onClick={() => setView({ type: 'home' })} className="hover:text-neon-blue transition-colors">{t.home}</button>
+        <button onClick={() => setView({ type: 'all' })} className="hover:text-neon-blue transition-colors">{t.allTools}</button>
+        <button onClick={() => setView({ type: 'privacy' })} className="hover:text-neon-blue transition-colors">{t.privacy}</button>
         <button onClick={() => setView({ type: 'favorites' })} className="hover:text-neon-magenta transition-colors flex items-center gap-1 relative group">
-          <Heart className="w-4 h-4" /> Favorites
+          <Heart className="w-4 h-4" /> {t.favorites}
           {favoritesCount > 0 && (
             <motion.span 
               initial={{ scale: 0 }}
@@ -280,12 +280,22 @@ const Header = ({ points, credits, favoritesCount, setView, user, onLogin, onLog
         </button>
         {user && (
           <button onClick={() => setView({ type: 'dashboard' })} className="hover:text-neon-blue transition-colors flex items-center gap-1">
-            <Activity className="w-4 h-4" /> Dashboard
+            <Activity className="w-4 h-4" /> {t.dashboard}
           </button>
         )}
       </nav>
 
       <div className="flex items-center gap-3">
+        <select 
+          value={language} 
+          onChange={(e) => setLanguage(e.target.value as Language)}
+          className="bg-cyber-black text-white text-xs p-1 rounded border border-white/10 cursor-pointer"
+        >
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+          <option value="fr">FR</option>
+          <option value="de">DE</option>
+        </select>
         <button onClick={onShowNotifications} className="relative p-2 text-white/50 hover:text-white transition-colors">
           <MessageSquare className="w-5 h-5" />
           {unreadCount > 0 && (
@@ -355,11 +365,8 @@ const Footer = ({ setView }: { setView: (v: ViewState) => void }) => (
   <footer className="bg-cyber-black border-t border-white/10 py-12 px-4 mt-20">
     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
       <div className="col-span-1 md:col-span-2">
-        <div className="flex items-center gap-2 mb-6">
-          <Calculator className="text-neon-blue w-8 h-8" />
-          <span className="text-2xl font-bold tracking-tighter neon-text-blue">
-            AICalculator<span className="text-white">.shop</span>
-          </span>
+        <div className="cursor-pointer mb-6" onClick={() => setView({ type: 'home' })}>
+          <Logo iconSize="lg" showText={true} />
         </div>
         <p className="text-white/50 max-w-md mb-8">
           The world's first high-conversion sovereign calculator hub. Powered by Cloudflare Workers AI and Native Arbitrage. Save 70% Plus on AI costs instantly.
@@ -1498,6 +1505,8 @@ const UserDashboard = ({ user, activities, setView }: { user: any, activities: a
 };
 
 export default function App() {
+  const [language, setLanguage] = useState<Language>('en');
+  const t = translations[language];
   const [view, setView] = useState<ViewState>({ type: 'home' });
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -1516,6 +1525,52 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [toolTypeFilter, setToolTypeFilter] = useState<'all' | 'free' | 'premium'>('all');
+
+  // Register WebMCP browser tools for agent discovery on load
+  useEffect(() => {
+    if (typeof (navigator as any).modelContext !== 'undefined') {
+      try {
+        (navigator as any).modelContext.provideContext({
+          tools: [
+            {
+              name: "calculate_ai_savings",
+              description: "Calculate employee vs AI agent savings based on hourly rate, employees, and work hours.",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  hourlyRate: { type: "number", description: "Hourly wage cost per employee in USD" },
+                  hoursPerWeek: { type: "number", description: "Average work hours per week" },
+                  employees: { type: "number", description: "Number of employees automated" },
+                  benefits: { type: "number", description: "Additional benefits/overhead percentage (default 25)" }
+                },
+                required: ["hourlyRate", "hoursPerWeek", "employees"]
+              },
+              async execute(args: any) {
+                const rate = Number(args.hourlyRate);
+                const hours = Number(args.hoursPerWeek);
+                const num = Number(args.employees);
+                const extra = Number(args.benefits || 25);
+                const baseHumanCost = rate * hours * num * 52;
+                const loadedHumanCost = baseHumanCost * (1 + extra / 100);
+                const aiMonthlySubscription = 20 * num;
+                const aiYearlyCost = aiMonthlySubscription * 12;
+                const yearlySavings = loadedHumanCost - aiYearlyCost;
+                return {
+                  humanCostYearly: loadedHumanCost,
+                  aiCostYearly: aiYearlyCost,
+                  savingsYearly: yearlySavings,
+                  summary: `Estimated annual savings of $${yearlySavings.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} by deploying AI agents.`
+                };
+              }
+            }
+          ]
+        });
+        console.log("WebMCP tools registered successfully.");
+      } catch (err) {
+        console.warn("Failed to register WebMCP tools:", err);
+      }
+    }
+  }, []);
 
   // Load local state initially
   useEffect(() => {
@@ -2745,6 +2800,9 @@ export default function App() {
         onLogout={handleLogout}
         notifications={notifications}
         onShowNotifications={() => setShowNotifications(!showNotifications)}
+        language={language}
+        setLanguage={setLanguage}
+        t={t}
       />
 
       {showNotifications && (
