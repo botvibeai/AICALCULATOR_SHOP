@@ -440,7 +440,7 @@ const Hero = ({ onBrowse }: { onBrowse: () => void }) => (
         </div>
         
         <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[0.9]">
-          53 FREE AI & <br />
+          59 FREE AI & <br />
           <span className="neon-text-blue">EVERYDAY CALCULATORS</span>
         </h1>
         
@@ -1659,7 +1659,7 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    let title = 'AICalculator.shop | 53+ Free AI & Native Tools';
+    let title = 'AICalculator.shop | 59+ Free AI & Native Tools';
     let description = 'Free online calculators for everyone. 100% Cloudflare native.';
 
     if (view.type === 'category') {
@@ -1678,8 +1678,8 @@ export default function App() {
       title = 'My Favorites | AICalculator.shop';
       description = 'Your personal collection of saved calculators at AICalculator.shop.';
     } else if (view.type === 'all') {
-      title = 'All 53 Calculators | AICalculator.shop';
-      description = 'Directory of 53+ free online calculators. Find the tool you need at AICalculator.shop.';
+      title = 'All 59 Calculators | AICalculator.shop';
+      description = 'Directory of 59+ free online calculators. Find the tool you need at AICalculator.shop.';
     }
 
     document.title = title;
@@ -1712,7 +1712,7 @@ export default function App() {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "AICalculator.shop",
-        "description": "Directory of 53+ free online calculators designed to estimate benefits, solar ROI, mortgage rates, and AI token cost arbitrage.",
+        "description": "Directory of 59+ free online calculators designed to estimate benefits, solar ROI, mortgage rates, and AI token cost arbitrage.",
         "url": "https://aicalculator.shop"
       };
     }
@@ -1984,7 +1984,7 @@ export default function App() {
               </div>
               <div className="space-y-4">
                 {[
-                  { q: "What is AICalculator.shop?", a: "The world's first high-conversion sovereign calculator hub, hosting 53+ tools powered by Cloudflare Workers and Native Arbitrage." },
+                  { q: "What is AICalculator.shop?", a: "The world's first high-conversion sovereign calculator hub, hosting 59+ tools powered by Cloudflare Workers and Native Arbitrage." },
                   { q: "Are these tools really free?", a: "Yes. All native utilities are 100% free. Premium AI-powered tools require credits, which can be earned by sharing tools or upgrading to Pro." },
                   { q: "What is Native Arbitrage?", a: "It's our proprietary routing system that identifies the cheapest high-performance inference route for LLM tasks, saving users 70% Plus on costs." },
                   { q: "Can I suggest new calculators?", a: "Absolutely. Use the form above or join our roadmap via CostImplodeAI.com to influence the next tool builds." }
@@ -2249,7 +2249,7 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-4 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div>
-                <h1 className="text-4xl font-black tracking-tight mb-2 uppercase">All 53 Calculators</h1>
+                <h1 className="text-4xl font-black tracking-tight mb-2 uppercase">All 59 Calculators</h1>
                 <p className="text-white/50">The complete sovereign toolset for the modern builder.</p>
               </div>
               <div className="relative max-w-md w-full">
