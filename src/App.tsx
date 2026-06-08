@@ -54,6 +54,7 @@ import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { Language, translations } from './translations';
 import { Logo } from './components/Logo';
+import { DynamicCalculator } from './components/DynamicCalculator';
 
 type Notification = {
   id: string;
@@ -1690,6 +1691,41 @@ export default function App() {
     }
     metaDesc.setAttribute('content', description);
 
+    // Dynamic JSON-LD structured data for Google & search crawlers in document `<head>`
+    let schemaJson: any = null;
+    if (view.type === 'tool') {
+      const tool = TOOLS.find(t => t.id === view.id);
+      const cat = CATEGORIES.find(c => c.id === tool?.categoryId);
+      if (tool) {
+        schemaJson = {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": tool.name,
+          "description": tool.description,
+          "applicationCategory": cat?.name || "BusinessApplication",
+          "url": `https://aicalculator.shop/tool/${tool.slug}`,
+          "browserRequirements": "Requires JavaScript. Requires HTML5."
+        };
+      }
+    } else {
+      schemaJson = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "AICalculator.shop",
+        "description": "Directory of 53+ free online calculators designed to estimate benefits, solar ROI, mortgage rates, and AI token cost arbitrage.",
+        "url": "https://aicalculator.shop"
+      };
+    }
+
+    let schemaScript = document.getElementById('seo-schema-ld');
+    if (!schemaScript) {
+      schemaScript = document.createElement('script');
+      schemaScript.id = 'seo-schema-ld';
+      schemaScript.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(schemaScript);
+    }
+    schemaScript.textContent = JSON.stringify(schemaJson, null, 2);
+
     // Track recently used tool
     if (view.type === 'tool' && view.id) {
       setRecentlyUsed(prev => {
@@ -2478,42 +2514,8 @@ export default function App() {
                      tool?.slug === 'human-vs-ai-cost' ? <HumanVsAICostCalculator /> :
                      tool?.slug === 'agent-efficiency' ? <AgentEfficiencyCalculator /> :
                      tool?.slug === 'inference-simulator' ? <InferenceSimulator /> :
-                     tool?.slug === 'botvibe-agent-roi' ? <HumanVsAICostCalculator /> : ( // Reuse logic for ROI
-                      <div className="text-center py-20">
-                        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                           <ZapOff className="w-10 h-10 text-white/20" />
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">{tool?.isPremium ? 'Live AI Interface Ready' : 'Interactive Prototype Mode'}</h3>
-                        <p className="text-white/40 max-w-sm mx-auto mb-8">
-                          {tool?.isPremium 
-                            ? `This tool leverages Google Gemini for predictive analysis. Click the button below to run the simulation.`
-                            : `This tool is ready for Cloudflare Worker deployment. In this prototype, we've implemented the BMI, Mortgage, and LLM Arbitrage calculators as live examples.`}
-                        </p>
-                        {tool?.isPremium ? (
-                          <div className="space-y-4">
-                            <button 
-                              onClick={() => tool && usePremiumTool(tool.id)}
-                              className="bg-neon-magenta text-white px-8 py-3 rounded-xl font-black shadow-[0_0_20px_rgba(255,0,170,0.4)] hover:scale-105 transition-transform flex items-center gap-2 mx-auto"
-                            >
-                              <Cpu className="w-5 h-5" /> EXECUTE AI INFERENCE
-                            </button>
-                            {lastAIResult && (
-                              <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="p-4 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green text-xs font-medium"
-                              >
-                                {lastAIResult}
-                              </motion.div>
-                            )}
-                          </div>
-                        ) : (
-                          <button className="bg-neon-blue text-cyber-black px-6 py-3 rounded-xl font-bold">
-                            DEPLOY TO WORKER
-                          </button>
-                        )}
-                      </div>
-                    )}
+                     tool?.slug === 'botvibe-agent-roi' ? <HumanVsAICostCalculator /> :
+                     tool ? <DynamicCalculator tool={tool} /> : null}
                   </div>
 
                   <div className="mt-12 pt-12 border-t border-white/10">
@@ -2577,35 +2579,11 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="glass p-8 rounded-2xl border-white/10">
-                      <h4 className="font-bold mb-4 flex items-center gap-2 text-white/40 uppercase tracking-widest text-xs">
-                        <Search className="w-4 h-4" /> Directory Schema
-                      </h4>
-                      <div className="space-y-4 text-[10px] font-mono text-white/30">
-                        <div className="p-3 bg-cyber-black/50 rounded border border-white/5">
-                          <p className="text-neon-blue">"@type": "Calculator"</p>
-                          <p>"name": "{tool?.name}"</p>
-                          <p>"category": "{toolCategory?.name}"</p>
-                          <p>"url": "https://aicalculator.shop/tool/{tool?.slug}"</p>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
 
-                <div className="glass p-8 rounded-2xl border-white/10">
-                  <h4 className="font-bold mb-4 flex items-center gap-2 text-white/40 uppercase tracking-widest text-xs">SEO Metadata Preview</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
-                    <div>
-                      <p className="text-white/30 mb-2 uppercase text-[10px] font-bold tracking-widest">Meta Title</p>
-                      <p className="text-neon-blue font-mono p-3 bg-white/5 rounded border border-white/5">{tool?.name} | Free Online Calculator | AICalculator.shop</p>
-                    </div>
-                    <div>
-                      <p className="text-white/30 mb-2 uppercase text-[10px] font-bold tracking-widest">Meta Description</p>
-                      <p className="text-white/60 p-3 bg-white/5 rounded border border-white/5">{tool?.description} Use our free, high-precision {tool?.name} to optimize your workflow. 100% Cloudflare native.</p>
-                    </div>
-                  </div>
-                </div>
+
               </div>
 
               {/* Sidebar */}
