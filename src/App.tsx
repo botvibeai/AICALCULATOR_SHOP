@@ -46,7 +46,9 @@ import {
   User as UserIcon,
   LogOut,
   History,
-  Server
+  Server,
+  LogIn,
+  Unlock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, googleProvider, createUserProfile, getUserProfile, logActivity, toggleToolFavorite, db } from './services/firebaseService';
@@ -1526,6 +1528,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [toolTypeFilter, setToolTypeFilter] = useState<'all' | 'free' | 'premium'>('all');
+  const [unlockedPremiumTools, setUnlockedPremiumTools] = useState<Record<string, boolean>>({});
 
   // Register WebMCP browser tools for agent discovery on load
   useEffect(() => {
@@ -1771,6 +1774,7 @@ export default function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setUnlockedPremiumTools({});
       setView({ type: 'home' });
     } catch (error) {
       console.error("Logout Error:", error);
@@ -1863,6 +1867,7 @@ export default function App() {
         setPoints(prev => prev + 5);
       }
       setLastAIResult(`Optimization complete. Gemini 1.5 Pro detected ${Math.floor(Math.random() * 15 + 85)}% efficiency across current data vectors.`);
+      setUnlockedPremiumTools(prev => ({ ...prev, [toolId]: true }));
     }, 1500);
   };
 
@@ -2492,30 +2497,112 @@ export default function App() {
                   </div>
 
                   <div className="min-h-[300px] flex flex-col justify-center bg-cyber-black/30 rounded-2xl p-6 border border-white/5 relative overflow-hidden">
-                    {isProcessingAI && (
-                      <div className="absolute inset-0 z-50 bg-cyber-black/80 flex flex-col items-center justify-center backdrop-blur-sm">
-                        <motion.div
-                          animate={{ 
-                            scale: [1, 1.2, 1],
-                            rotate: [0, 180, 360]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                          className="w-16 h-16 border-4 border-neon-magenta border-t-transparent rounded-full mb-6"
-                        />
-                        <div className="text-neon-magenta font-black tracking-widest text-sm uppercase animate-pulse">Consulting Gemini 1.5 Pro...</div>
-                        <div className="text-white/30 text-[10px] mt-2 font-mono uppercase tracking-widest">Applying Predictive Slashing Algorithms</div>
+                    {!currentUser ? (
+                      <div className="flex flex-col items-center justify-center py-12 text-center text-white p-4 sm:p-6 relative">
+                        <div className="w-16 h-16 bg-neon-blue/10 rounded-full flex items-center justify-center border border-neon-blue/30 mb-6 shadow-[0_0_15px_rgba(0,243,255,0.2)]">
+                          <Lock className="w-8 h-8 text-neon-blue animate-pulse" />
+                        </div>
+                        <h3 className="text-2xl font-black mb-2 uppercase tracking-widest text-[#00f3ff]">Authentication Required</h3>
+                        <p className="text-sm text-white/50 max-w-sm mb-8 leading-relaxed">
+                          To protect computing bandwidth and synchronize calculation metrics, you must be logged in to use this calculator.
+                        </p>
+                        <button
+                          onClick={handleLogin}
+                          className="bg-neon-blue text-cyber-black font-black px-8 py-3 rounded-xl hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,243,255,0.3)] cursor-pointer text-xs uppercase"
+                        >
+                          <LogIn className="w-4 h-4" /> LOGIN WITH GOOGLE (FREE)
+                        </button>
                       </div>
-                    )}
+                    ) : tool?.isPremium && !unlockedPremiumTools[tool.id] ? (
+                      credits <= 0 && subscriptionTier === 'free' ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-white p-4 sm:p-6 relative">
+                          <div className="w-16 h-16 bg-neon-magenta/10 rounded-full flex items-center justify-center border border-neon-magenta/30 mb-6 shadow-[0_0_15px_rgba(255,0,170,0.2)]">
+                            <Sparkles className="w-8 h-8 text-neon-magenta" />
+                          </div>
+                          <h3 className="text-2xl font-black mb-2 uppercase tracking-widest text-[rgb(255,0,170)]">PRO CREDIT REQUIRED</h3>
+                          <p className="text-sm text-white/50 max-w-sm mb-2 leading-relaxed">
+                            You have run out of premium evaluation credits. High-fidelity Gemini models require active credits.
+                          </p>
+                          <div className="bg-white/5 border border-white/5 rounded-xl px-4 py-2 mt-2 mb-6">
+                            <span className="text-[10px] uppercase font-mono text-white/40">Your Balance: </span>
+                            <span className="font-mono text-neon-magenta text-xs font-black">0 Credits</span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                              onClick={() => setView({ type: 'premium' })}
+                              className="bg-neon-magenta text-white font-black px-8 py-3 rounded-xl hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(255,0,170,0.3)] cursor-pointer text-xs uppercase"
+                            >
+                              <CreditCard className="w-4 h-4" /> UPGRADE TO PRO TIER
+                            </button>
+                            <button
+                              onClick={() => setView({ type: 'dashboard' })}
+                              className="bg-white/5 hover:bg-white/10 text-white font-black px-8 py-3 rounded-xl transition-all border border-white/10 text-xs uppercase"
+                            >
+                              EARN POINTS
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-white p-4 sm:p-6 relative">
+                          <div className="w-16 h-16 bg-neon-magenta/10 rounded-full flex items-center justify-center border border-neon-magenta/30 mb-6 shadow-[0_0_15px_rgba(255,0,170,0.2)]">
+                            <Cpu className="w-8 h-8 text-neon-magenta" />
+                          </div>
+                          <h3 className="text-2xl font-black mb-2 uppercase tracking-widest text-[rgb(255,0,170)]">Unlock Premium Calculator</h3>
+                          <p className="text-sm text-white/50 max-w-sm mb-2 leading-relaxed">
+                            This high-fidelity calculator is powered by Gemini 1.5 Pro predictive algorithms and consumes 1 premium credit.
+                          </p>
+                          <div className="bg-white/5 border border-white/5 rounded-xl px-4 py-2 mt-2 mb-8 flex items-center gap-2">
+                            <span className="text-[10px] uppercase font-mono text-white/40">Cost: </span>
+                            <span className="font-mono text-neon-magenta text-xs font-black">1 Credit</span>
+                            <span className="text-white/20">|</span>
+                            <span className="text-[10px] uppercase font-mono text-white/40">Your Balance: </span>
+                            <span className="font-mono text-neon-green text-xs font-black">{credits} Credits</span>
+                          </div>
+                          <button
+                            onClick={() => usePremiumTool(tool.id)}
+                            className="bg-neon-magenta text-white font-black px-8 py-4 rounded-xl hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(255,0,170,0.4)] cursor-pointer text-xs tracking-wide uppercase"
+                            disabled={isProcessingAI}
+                          >
+                            {isProcessingAI ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" /> CONSULTING GEMINI...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4 h-4" /> UNLOCK WITH 1 CREDIT
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )
+                    ) : (
+                      <>
+                        {isProcessingAI && (
+                          <div className="absolute inset-0 z-50 bg-cyber-black/80 flex flex-col items-center justify-center backdrop-blur-sm">
+                            <motion.div
+                              animate={{ 
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 180, 360]
+                              }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                              className="w-16 h-16 border-4 border-neon-magenta border-t-transparent rounded-full mb-6"
+                            />
+                            <div className="text-neon-magenta font-black tracking-widest text-sm uppercase animate-pulse">Consulting Gemini 1.5 Pro...</div>
+                            <div className="text-white/30 text-[10px] mt-2 font-mono uppercase tracking-widest">Applying Predictive Slashing Algorithms</div>
+                          </div>
+                        )}
 
-                    {tool?.slug === 'bmi-calculator' ? <BMICalculator /> : 
-                     tool?.slug === 'llm-arbitrage-cost' ? <LLMArbitrageCalculator /> : 
-                     tool?.slug === 'mortgage-payment' ? <MortgageCalculator /> :
-                     tool?.slug === 'compound-interest' ? <CompoundInterestCalculator /> : 
-                     tool?.slug === 'human-vs-ai-cost' ? <HumanVsAICostCalculator /> :
-                     tool?.slug === 'agent-efficiency' ? <AgentEfficiencyCalculator /> :
-                     tool?.slug === 'inference-simulator' ? <InferenceSimulator /> :
-                     tool?.slug === 'botvibe-agent-roi' ? <HumanVsAICostCalculator /> :
-                     tool ? <DynamicCalculator tool={tool} /> : null}
+                        {tool?.slug === 'bmi-calculator' ? <BMICalculator /> : 
+                         tool?.slug === 'llm-arbitrage-cost' ? <LLMArbitrageCalculator /> : 
+                         tool?.slug === 'mortgage-payment' ? <MortgageCalculator /> :
+                         tool?.slug === 'compound-interest' ? <CompoundInterestCalculator /> : 
+                         tool?.slug === 'human-vs-ai-cost' ? <HumanVsAICostCalculator /> :
+                         tool?.slug === 'agent-efficiency' ? <AgentEfficiencyCalculator /> :
+                         tool?.slug === 'inference-simulator' ? <InferenceSimulator /> :
+                         tool?.slug === 'botvibe-agent-roi' ? <HumanVsAICostCalculator /> :
+                         tool ? <DynamicCalculator tool={tool} /> : null}
+                      </>
+                    )}
                   </div>
 
                   <div className="mt-12 pt-12 border-t border-white/10">
